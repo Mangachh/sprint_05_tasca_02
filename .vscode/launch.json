@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-Sprint05Application<sprint05>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.tasca02.sprint05.Sprint05Application",
+            "projectName": "sprint05",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
