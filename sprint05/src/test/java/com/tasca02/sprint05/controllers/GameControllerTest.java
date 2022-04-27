@@ -1,7 +1,6 @@
 package com.tasca02.sprint05.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,7 +10,6 @@ import java.util.Map;
 import com.tasca02.sprint05.models.Game;
 import com.tasca02.sprint05.models.Player;
 import com.tasca02.sprint05.models.Toss;
-import com.tasca02.sprint05.repositories.PlayerRepoImpl;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,37 +21,40 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @Transactional
 public class GameControllerTest {
+
     @Autowired
-    private GameController playRepo;
+    private GameController controller;
 
     @Autowired
     private Game game;
 
     @Test
+    @Transactional
     void testCreatePlayer() {
-        String name = "Player_Test";
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer(name);
+        String name = "Player_Create_Test";
+        ResponseEntity<Player> playerResponse = controller.createPlayer(name);
         assertEquals(HttpStatus.OK, playerResponse.getStatusCode());
         assertEquals(name, playerResponse.getBody().getName());
     }
 
     @Test
     void testThrowDice() {
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer("Player_Test");
-        ResponseEntity<Toss> tossA = playRepo.throwDice(playerResponse.getBody().getId());
-        ResponseEntity<Toss> tossB = playRepo.throwDice(playerResponse.getBody().getId());
+        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Throw_Test");
+        ResponseEntity<Toss> tossA = controller.throwDice(playerResponse.getBody().getId());
+        ResponseEntity<Toss> tossB = controller.throwDice(playerResponse.getBody().getId());
 
         assertNotNull(tossA.getBody());
         assertNotNull(tossB.getBody());
     }
 
     @Test
+    @Transactional
     void testDeleteTosses() {
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer("Player_Test");
-        Toss tossA = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossB = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test");
+        Toss tossA = controller.throwDice(playerResponse.getBody().getId()).getBody();
+        Toss tossB = controller.throwDice(playerResponse.getBody().getId()).getBody();
 
-        playerResponse = playRepo.deleteTosses(playerResponse.getBody().getId());
+        playerResponse = controller.deleteTosses(playerResponse.getBody().getId());
 
         assertTrue(playerResponse.hasBody());
         assertEquals(0, playerResponse.getBody().getTosses().size());
@@ -62,7 +63,7 @@ public class GameControllerTest {
 
     @Test
     void testGetAllPlayersPercentatge() {
-        ResponseEntity<Map<String, Double>> playerPercList = playRepo.getAllPlayersPercentatge();
+        ResponseEntity<Map<String, Double>> playerPercList = controller.getAllPlayersPercentatge();
         int oldSize;
         if (playerPercList.hasBody() == false) {
             oldSize = 0;
@@ -70,18 +71,18 @@ public class GameControllerTest {
             oldSize = playerPercList.getBody().size();
         }
 
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer("Player_Test_1");
-        Toss tossA = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossB = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
+        Toss tossA = controller.throwDice(playerResponse.getBody().getId()).getBody();
+        Toss tossB = controller.throwDice(playerResponse.getBody().getId()).getBody();
 
         Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
 
-        ResponseEntity<Player> playerResponse2 = playRepo.createPlayer("Player_Test_2");
-        Toss tossC = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossD = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
+        Toss tossC = controller.throwDice(playerResponse.getBody().getId()).getBody();
+        Toss tossD = controller.throwDice(playerResponse.getBody().getId()).getBody();
         Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
 
-        playerPercList = playRepo.getAllPlayersPercentatge();
+        playerPercList = controller.getAllPlayersPercentatge();
 
         assertTrue(playerPercList.hasBody());
         assertEquals(2, playerPercList.getBody().size() - oldSize);
@@ -95,21 +96,21 @@ public class GameControllerTest {
 
     @Test
     void testGetBestPlayer() {
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer("Player_Test_1");
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
 
 
         Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
 
-        ResponseEntity<Player> playerResponse2 = playRepo.createPlayer("Player_Test_2");
+        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
         Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
 
-        ResponseEntity<Player> bestPlayerAsk = playRepo.getBestPlayer();
+        ResponseEntity<Player> bestPlayerAsk = controller.getBestPlayer();
         Player bestPlayer = percentageA > percentageB ? playerResponse.getBody() : playerResponse2.getBody();
         
         assertTrue(bestPlayerAsk.hasBody());
@@ -119,19 +120,19 @@ public class GameControllerTest {
 
     @Test
     void testGetRanking() {
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer("Player_Test_1");
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
 
         Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
 
-        ResponseEntity<Player> playerResponse2 = playRepo.createPlayer("Player_Test_2");
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
         Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
 
         Double total = (percentageA + percentageB) / 2;
-        ResponseEntity<Double> answer = playRepo.getRanking();
+        ResponseEntity<Double> answer = controller.getRanking();
 
         assertTrue(answer.hasBody());
         assertEquals(total, answer.getBody());
@@ -139,11 +140,11 @@ public class GameControllerTest {
 
     @Test
     void testGetTossList() {
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer("Player_Test_2");
-        Toss tossA = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossB = playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_2");
+        Toss tossA = controller.throwDice(playerResponse.getBody().getId()).getBody();
+        Toss tossB = controller.throwDice(playerResponse.getBody().getId()).getBody();
     
-        ResponseEntity<List<Toss>> tosses = playRepo.getTossList(playerResponse.getBody().getId());
+        ResponseEntity<List<Toss>> tosses = controller.getTossList(playerResponse.getBody().getId());
         assertTrue(tosses.hasBody());
         assertEquals(2, tosses.getBody().size());
         assertTrue(tosses.getBody().contains(tossA));
@@ -152,21 +153,21 @@ public class GameControllerTest {
 
     @Test
     void testGetWorstPlayer() {
-        ResponseEntity<Player> playerResponse = playRepo.createPlayer("Player_Test_1");
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
-        playRepo.throwDice(playerResponse.getBody().getId()).getBody();
+        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        controller.throwDice(playerResponse.getBody().getId()).getBody();
 
 
         Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
 
-        ResponseEntity<Player> playerResponse2 = playRepo.createPlayer("Player_Test_2");
+        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
         Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
 
-        ResponseEntity<Player> bestPlayerAsk = playRepo.getBestPlayer();
+        ResponseEntity<Player> bestPlayerAsk = controller.getBestPlayer();
         Player bestPlayer = percentageA < percentageB ? playerResponse.getBody() : playerResponse2.getBody();
         
         assertTrue(bestPlayerAsk.hasBody());
@@ -178,8 +179,8 @@ public class GameControllerTest {
         String oldName = "Player_test";
         String newName = "New_Name_Test";
 
-        playRepo.createPlayer(oldName);
-        ResponseEntity<Player> modifiedPlayer = playRepo.modifyPlayerName(oldName, newName);
+        controller.createPlayer(oldName);
+        ResponseEntity<Player> modifiedPlayer = controller.modifyPlayerName(oldName, newName);
 
         assertTrue(modifiedPlayer.hasBody());
         assertEquals(newName, modifiedPlayer.getBody().getName());

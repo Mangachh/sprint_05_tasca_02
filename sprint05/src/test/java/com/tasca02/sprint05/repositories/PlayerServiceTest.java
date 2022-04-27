@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 
 import com.tasca02.sprint05.models.Player;
 import com.tasca02.sprint05.models.Toss;
+import com.tasca02.sprint05.services.PlayerService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +18,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @Transactional
-public class PlayerRepoImplTest {
+public class PlayerServiceTest {
 
     @Autowired
-    private PlayerRepoImpl repo;
+    private PlayerService repo;
 
     // crea un jugador 
     @Test
     public void createPlayer() {
-        Player player = new Player("Player_1");
+        Player player = new Player("Player_Create_1");
         Player savedPlayer = repo.save(player);
 
         assertEquals(player, savedPlayer);
@@ -50,7 +51,7 @@ public class PlayerRepoImplTest {
 
     @Test
     public void addTosses() {
-        Player player = new Player("Player_Test");
+        Player player = new Player("Player_Add_Toss");
         Toss tossA = new Toss((byte) 2, (byte) 5);
         player.addToss(tossA);
         Toss tossB = new Toss((byte) 2, (byte) 5);
@@ -63,7 +64,7 @@ public class PlayerRepoImplTest {
     
     @Test
     public void deleteTosses() {
-        Player player = new Player("Player_Test");
+        Player player = new Player("Player_Delete_Toss");
         Toss tossA = new Toss((byte) 2, (byte) 5);
         player.addToss(tossA);
         Toss tossB = new Toss((byte) 2, (byte) 5);
@@ -84,7 +85,7 @@ public class PlayerRepoImplTest {
     public void listOfAll() {
         int oldCount = repo.findAll().size();
 
-        Player player1 = new Player("Player_1");
+        Player player1 = new Player("Player_All_1");
         Toss tossA = new Toss((byte) 2, (byte) 7);
         Toss tossB = new Toss((byte) 5, (byte) 2);
         player1.addToss(tossA);
@@ -92,7 +93,7 @@ public class PlayerRepoImplTest {
 
         repo.save(player1);
 
-        Player player2 = new Player("Player_2");
+        Player player2 = new Player("Player_All_2");
         tossA = new Toss((byte) 6, (byte) 1);
         tossB = new Toss((byte) 5, (byte) 2);
         player2.addToss(tossA);
@@ -103,7 +104,6 @@ public class PlayerRepoImplTest {
         List<Player> players = repo.findAll();
 
         assertEquals(players.size(), oldCount + 2);
-        assertTrue(players.contains(player1));
         assertTrue(players.contains(player2));
         assertEquals(50, player1.getPercentage(7));
         assertEquals(100, player2.getPercentage(7));
@@ -111,7 +111,7 @@ public class PlayerRepoImplTest {
 
     @Test
     public void getAllGame() {
-        Player player = new Player("Player_Test");
+        Player player = new Player("Player_Get_All");
         Toss tossA = new Toss((byte) 2, (byte) 5);
         player.addToss(tossA);
         Toss tossB = new Toss((byte) 2, (byte) 5);
@@ -124,7 +124,7 @@ public class PlayerRepoImplTest {
 
     @Test
     public void getWorstPlayer() {
-        Player player1 = new Player("Player_1");
+        Player player1 = new Player("Player_Worst_1");
         Toss tossA = new Toss((byte) 2, (byte) 7);
         Toss tossB = new Toss((byte) 5, (byte) 2);
         player1.addToss(tossA);
@@ -132,7 +132,7 @@ public class PlayerRepoImplTest {
 
         repo.save(player1);
 
-        Player player2 = new Player("Player_2");
+        Player player2 = new Player("Player_Worst_2");
         tossA = new Toss((byte) 6, (byte) 1);
         tossB = new Toss((byte) 5, (byte) 2);
         player2.addToss(tossA);
@@ -147,7 +147,7 @@ public class PlayerRepoImplTest {
 
     @Test
     public void getBestPlayer() {
-        Player player1 = new Player("Player_1");
+        Player player1 = new Player("Player_Best_1");
         Toss tossA = new Toss((byte) 2, (byte) 7);
         Toss tossB = new Toss((byte) 5, (byte) 2);
         player1.addToss(tossA);
@@ -155,7 +155,7 @@ public class PlayerRepoImplTest {
 
         repo.save(player1);
 
-        Player player2 = new Player("Player_2");
+        Player player2 = new Player("Player_Best_2");
         tossA = new Toss((byte) 6, (byte) 1);
         tossB = new Toss((byte) 5, (byte) 2);
         player2.addToss(tossA);

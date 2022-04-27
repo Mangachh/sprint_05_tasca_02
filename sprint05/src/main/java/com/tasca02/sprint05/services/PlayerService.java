@@ -1,19 +1,19 @@
-package com.tasca02.sprint05.repositories;
+package com.tasca02.sprint05.services;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 import com.tasca02.sprint05.models.Player;
-import com.tasca02.sprint05.services.IPlayerRepo;
+import com.tasca02.sprint05.repositories.IGeneralRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PlayerRepoImpl {
+public class PlayerService {
+
     @Autowired
-    private IPlayerRepo repo;
+    private IGeneralRepo<Player> repo;
 
     public Player save(final Player player) {
         return repo.save(player);

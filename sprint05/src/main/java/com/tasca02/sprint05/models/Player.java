@@ -11,9 +11,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 @Entity
-@Table(name="Players")
+@Table(name = "Players")
+@Document("player")
 public class Player {
+    // TODO: camibar por auto
     private static long ID_MAIN;
 
     @Id
@@ -40,7 +44,7 @@ public class Player {
     }
     
     public long getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(long id) {
@@ -51,7 +55,7 @@ public class Player {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String name) {
@@ -101,7 +105,12 @@ public class Player {
         }
 
         Player otherPlayer = (Player) other;
-        return this.name == otherPlayer.getName() && this.id == otherPlayer.getId();
+        return this.name.equals(otherPlayer.getName()) && this.id == otherPlayer.getId();        
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id.intValue();
     }
 
     

@@ -11,7 +11,8 @@ import javax.annotation.PostConstruct;
 import com.tasca02.sprint05.models.Game;
 import com.tasca02.sprint05.models.Player;
 import com.tasca02.sprint05.models.Toss;
-import com.tasca02.sprint05.repositories.PlayerRepoImpl;
+import com.tasca02.sprint05.services.PlayerService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class GameController {
      * (test 1 = component, test 2 = integracio)
      */
     @Autowired
-    private PlayerRepoImpl playRepo;
+    private PlayerService playRepo;
 
     @Autowired
     private Game game;
