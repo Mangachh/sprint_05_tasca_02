@@ -1,7 +1,8 @@
 package com.tasca02.sprint05;
 
 import com.tasca02.sprint05.models.Player;
-import com.tasca02.sprint05.repositories.IGeneralRepo;
+import com.tasca02.sprint05.services.IGeneralService;
+import com.tasca02.sprint05.services.PlayerFullImp;
 import com.tasca02.sprint05.services.PlayerMongoImp;
 import com.tasca02.sprint05.services.PlayerSQLImp;
 
@@ -18,13 +19,19 @@ public class Config {
 
     @Bean
     @Profile("mysql")
-    IGeneralRepo<Player> repoMysql() {
+    IGeneralService<Player> repoMysql() {
         return new PlayerSQLImp();
     }
 
     @Bean
     @Profile("mongo")
-    IGeneralRepo<Player> repoMong() {
+    IGeneralService<Player> repoMong() {
         return new PlayerMongoImp();
+    }
+
+    @Bean
+    @Profile("all")
+    IGeneralService<Player> repoAll() {
+        return new PlayerFullImp();
     }
 }

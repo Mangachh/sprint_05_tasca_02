@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tasca02.sprint05.models.Player;
-import com.tasca02.sprint05.repositories.IGeneralRepo;
 import com.tasca02.sprint05.repositories.mongo.IPlayerRepoMongo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 
-public class PlayerMongoImp implements IGeneralRepo<Player>{
+public class PlayerMongoImp implements IGeneralService<Player> {
+    
     @Autowired
     IPlayerRepoMongo repo;
 
@@ -27,6 +27,16 @@ public class PlayerMongoImp implements IGeneralRepo<Player>{
     @Override
     public List<Player> findAll() {
         return repo.findAll();
+    }
+
+    @Override
+    public Player findByName(final String name) {
+        return repo.findByName(name);
+    }
+
+    @Override
+    public Player findFirstByOrderByIdDesc() {
+        return repo.findFirstByOrderByIdDesc();
     }
     
 }

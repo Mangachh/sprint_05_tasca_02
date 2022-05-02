@@ -2,10 +2,13 @@ package com.tasca02.sprint05.models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
@@ -17,7 +20,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Table(name = "Players")
 @Document("player")
 public class Player {
-    // TODO: camibar por auto
+    // nada, lo dejamos así porque es más fácil 
+    // usar el mismo perfil para todos los perficles
     private static long ID_MAIN;
 
     @Id
@@ -42,12 +46,21 @@ public class Player {
         this.id = ID_MAIN;
         ID_MAIN++;
     }
+
+    public Player(String name, Long id) {
+        this.tosses = new ArrayList<>();
+        this.name = name;
+        this.id = id;
+        if (id > ID_MAIN) {
+            ID_MAIN = id++;
+        }
+    }
     
-    public long getId() {
+    public Long getId() {
         return this.id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
         if (this.id > ID_MAIN) {
             ID_MAIN = this.id;
@@ -76,6 +89,10 @@ public class Player {
 
     public void clearTosses() {
         this.tosses.clear();
+    }
+
+    public static void setIdMain(Long idMain) {
+        ID_MAIN = idMain;
     }
 
     public double getPercentage(int winningResult) {

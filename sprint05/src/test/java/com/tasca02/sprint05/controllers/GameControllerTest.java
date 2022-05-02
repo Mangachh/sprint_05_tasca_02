@@ -12,6 +12,8 @@ import com.tasca02.sprint05.models.Player;
 import com.tasca02.sprint05.models.Toss;
 
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
+@RunWith(MockitoJUnitRunner.class)
 public class GameControllerTest {
 
     @Autowired
@@ -27,9 +30,9 @@ public class GameControllerTest {
 
     @Autowired
     private Game game;
+    
 
     @Test
-    @Transactional
     void testCreatePlayer() {
         String name = "Player_Create_Test";
         ResponseEntity<Player> playerResponse = controller.createPlayer(name);
@@ -48,7 +51,6 @@ public class GameControllerTest {
     }
 
     @Test
-    @Transactional
     void testDeleteTosses() {
         ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test");
         Toss tossA = controller.throwDice(playerResponse.getBody().getId()).getBody();

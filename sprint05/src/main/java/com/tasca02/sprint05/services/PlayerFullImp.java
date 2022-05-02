@@ -4,39 +4,45 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tasca02.sprint05.models.Player;
+import com.tasca02.sprint05.repositories.mongo.IPlayerRepoMongo;
 import com.tasca02.sprint05.repositories.sql.IPlayerRepoSQL;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-
-public class PlayerSQLImp implements IGeneralService<Player> {
-
+public class PlayerFullImp implements IGeneralService<Player>{
+    
     @Autowired
-    IPlayerRepoSQL repo;
+    private IPlayerRepoMongo mongoRepo;
+
+    @Autowired 
+    private IPlayerRepoSQL sqlRepo;
+
 
     @Override
-    public Player save(final Player obj) {
-        return repo.save(obj);
+    public Player save(Player obj) {
+        mongoRepo.save(obj);
+        return sqlRepo.save(obj);
     }
-    
+
     @Override
     public Optional<Player> findById(long id) {
-        return repo.findById(id);
+        return sqlRepo.findById(id);
     }
 
     @Override
     public List<Player> findAll() {
-        return repo.findAll();
+        return mongoRepo.findAll();
     }
 
     @Override
     public Player findByName(String name) {
-        return repo.findByName(name);
+        return mongoRepo.findByName(name);
     }
-    
+
     @Override
     public Player findFirstByOrderByIdDesc() {
-        return repo.findFirstByOrderByIdDesc();
+        return sqlRepo.findFirstByOrderByIdDesc();
     }
-    
+
+
 }

@@ -3,11 +3,11 @@ package com.tasca02.sprint05.controllers;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import com.tasca02.sprint05.Exceptions.NameExistsException;
 import com.tasca02.sprint05.models.Game;
 import com.tasca02.sprint05.models.Player;
 import com.tasca02.sprint05.models.Toss;
@@ -16,6 +16,10 @@ import com.tasca02.sprint05.services.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class GameController {
 
     /*
@@ -36,45 +41,30 @@ public class GameController {
     @Autowired
     private Game game;
 
-    private static long anon_id = 0;
-    private final static String ANON_NAME = "Anonimous_";
-
-    @PostConstruct
-    private void init() {
-        //game = new Game();
-
-        List<String> names = playRepo.findAll().stream().map(p -> p.getName()).filter(n -> n.contains(ANON_NAME))
-                .toList();
-        long tempId = 0;
-        for (String name : names) {
-            try {
-                tempId = Long.parseLong(name.split(ANON_NAME)[0]);
-
-                if (tempId > anon_id) {
-                    anon_id = tempId;
-                }
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-        }
+    public GameController() {
     }
+
+    public GameController(final PlayerService service, final Game game) {
+        this.playRepo = service;
+        this.game = game;
+    }
+    
+    
 
     /** POST: /players : crea un jugador (test 1) */
     @PostMapping("/players")
     public ResponseEntity<Player> createPlayer(@RequestParam(name = "name", required = false) String name) {
         if (name == null) {
-            name = ANON_NAME.concat(String.valueOf(anon_id));
-            anon_id++;
-        }
-
-        Optional<Player> testPlayer = playRepo.findByName(name);
-
-        if (testPlayer.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).header("Error", "The name already Exists").body(null);
+            
         }
 
         Player newPlayer = new Player(name);
-        playRepo.save(newPlayer);
+        try {
+            playRepo.save(newPlayer);
+        } catch (NameExistsException e) {
+            return this.nameAlreadyExists(name);
+        }
+
         return ResponseEntity.ok(newPlayer);
     }
 
@@ -90,15 +80,20 @@ public class GameController {
         if (newName == null) {
             return ResponseEntity.badRequest().header("Error", "No new name supplied").body(null);
         }
-        Optional<Player> player = playRepo.findByName(name);
+        Player player = playRepo.findByName(name);
 
-        if (player.isPresent() == false) {
-            this.noPlayerFound(name);
+        if (player == null) {
+            return this.noPlayerFound(name);
         }
 
-        player.get().setName(newName);
-        playRepo.save(player.get());
-        return ResponseEntity.ok(player.get());
+        player.setName(newName);
+
+        try {
+            playRepo.save(player);
+        } catch (NameExistsException e) {
+            return this.nameAlreadyExists(name);
+        }
+        return ResponseEntity.ok(player);
     }
 
     /*
@@ -120,6 +115,7 @@ public class GameController {
         Toss toss = game.generateToss();
         player.get().addToss(toss);
         playRepo.save(player.get());
+
         return ResponseEntity.ok(toss);
     }
 
@@ -178,23 +174,26 @@ public class GameController {
         return ResponseEntity.ok(player.get().getTosses());
     }
 
-    /* GET /players/ranking: retorna el ranking mig de tots els jugadors del sistema
-     * . És a dir, el percentatge mig d’èxits.*/
+    /*
+     * GET /players/ranking: retorna el ranking mig de tots els jugadors del sistema
+     * . És a dir, el percentatge mig d’èxits.
+     */
     @GetMapping("/players/ranking")
     public ResponseEntity<Double> getRanking() {
         List<Player> players = playRepo.findAll();
         if (players == null || players.size() == 0) {
             this.noPlayersFound();
         }
-        
+
         Double percSum = players.stream().map(p -> p.getPercentage(this.game.getWinningSum()))
                 .collect(Collectors.summingDouble(Double::doubleValue));
 
         return ResponseEntity.ok(percSum / players.size());
     }
 
-
-    /* GET /players/ranking/loser: retorna el jugador amb pitjor percentatge d’èxit */
+    /*
+     * GET /players/ranking/loser: retorna el jugador amb pitjor percentatge d’èxit
+     */
     @GetMapping("/players/ranking/loser")
     public ResponseEntity<Player> getWorstPlayer() {
         Optional<Player> player = playRepo.findWorsePlayer();
@@ -204,9 +203,11 @@ public class GameController {
         }
 
         return ResponseEntity.ok(player.get());
-    }    
+    }
 
-    /* GET /players/ranking/winner: retorna el jugador amb pitjor percentatge d’èxit */
+    /*
+     * GET /players/ranking/winner: retorna el jugador amb pitjor percentatge d’èxit
+     */
     @GetMapping("/players/ranking/winner")
     public ResponseEntity<Player> getBestPlayer() {
         Optional<Player> player = playRepo.findBestPlayer();
@@ -217,7 +218,6 @@ public class GameController {
 
         return ResponseEntity.ok(player.get());
     }
-
 
     private <T> ResponseEntity<T> noIdSupplied() {
         return ResponseEntity.badRequest().header("Error", "No id supplied").body(null);
@@ -234,5 +234,12 @@ public class GameController {
 
     private <T> ResponseEntity<T> noPlayersFound() {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Error", "No players found").body(null);
+    }
+
+    private <T> ResponseEntity<T> nameAlreadyExists(final String name) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .header("Error", String.format("The name \"%s\" already Exists", name)).body(null);
+
     }
 }
