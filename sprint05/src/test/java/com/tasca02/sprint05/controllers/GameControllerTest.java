@@ -4,188 +4,153 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import com.tasca02.sprint05.models.Game;
 import com.tasca02.sprint05.models.Player;
 import com.tasca02.sprint05.models.Toss;
+import com.tasca02.sprint05.services.PlayerService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@SpringBootTest
-@Transactional
-@RunWith(MockitoJUnitRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@RunWith(SpringRunner.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class GameControllerTest {
 
     @Autowired
-    private GameController controller;
+    private MockMvc mockMvc;
 
-    @Autowired
+    @MockBean
+    private PlayerService service;
+
+    @MockBean
     private Game game;
-    
 
     @Test
-    void testCreatePlayer() {
-        String name = "Player_Create_Test";
-        ResponseEntity<Player> playerResponse = controller.createPlayer(name);
-        assertEquals(HttpStatus.OK, playerResponse.getStatusCode());
-        assertEquals(name, playerResponse.getBody().getName());
-    }
+    void testCreatePlayer() throws Exception {
 
-    @Test
-    void testThrowDice() {
-        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Throw_Test");
-        ResponseEntity<Toss> tossA = controller.throwDice(playerResponse.getBody().getId());
-        ResponseEntity<Toss> tossB = controller.throwDice(playerResponse.getBody().getId());
-
-        assertNotNull(tossA.getBody());
-        assertNotNull(tossB.getBody());
-    }
-
-    @Test
-    void testDeleteTosses() {
-        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test");
-        Toss tossA = controller.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossB = controller.throwDice(playerResponse.getBody().getId()).getBody();
-
-        playerResponse = controller.deleteTosses(playerResponse.getBody().getId());
-
-        assertTrue(playerResponse.hasBody());
-        assertEquals(0, playerResponse.getBody().getTosses().size());
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/players?name=mock_01"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.name").value("mock_01"));
 
     }
 
     @Test
-    void testGetAllPlayersPercentatge() {
-        ResponseEntity<Map<String, Double>> playerPercList = controller.getAllPlayersPercentatge();
-        int oldSize;
-        if (playerPercList.hasBody() == false) {
-            oldSize = 0;
-        } else {
-            oldSize = playerPercList.getBody().size();
-        }
+    void testModifyPlayerName() throws Exception {
+        Mockito.when(this.service.findByName("fake_name")).thenReturn(new Player("fake_name"));
 
-        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
-        Toss tossA = controller.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossB = controller.throwDice(playerResponse.getBody().getId()).getBody();
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/players/fake_name?newName=true_name"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.name").value("true_name"));
 
-        Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
-
-        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
-        Toss tossC = controller.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossD = controller.throwDice(playerResponse.getBody().getId()).getBody();
-        Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
-
-        playerPercList = controller.getAllPlayersPercentatge();
-
-        assertTrue(playerPercList.hasBody());
-        assertEquals(2, playerPercList.getBody().size() - oldSize);
-        assertTrue(playerPercList.getBody().containsKey(playerResponse.getBody().getName()));
-        assertTrue(playerPercList.getBody().containsKey(playerResponse2.getBody().getName()));
-        assertEquals(playerPercList.getBody().get(playerResponse2.getBody().getName()),
-                playerResponse.getBody().getPercentage(game.getWinningSum()));
-        assertEquals(playerPercList.getBody().get(playerResponse2.getBody().getName()),
-                playerResponse.getBody().getPercentage(game.getWinningSum()));
     }
 
     @Test
-    void testGetBestPlayer() {
-        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
+    void testThrowDice() throws Exception {
+        Mockito.when(this.service.findById(0)).thenReturn(Optional.of(new Player("test_mocki")));
+        Mockito.when(this.game.generateToss()).thenReturn(new Toss((byte) 1, (byte) 1));
 
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/players/0/games/"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.sum").value("2"))
+                .andExpect(MockMvcResultMatchers.jsonPath("@.resultDiceA").value("1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("@.resultDiceB").value("1"));
+    }
 
-        Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
+    @Test
+    void testDeleteTosses() throws Exception {
+        Player mockPlayer = new Player("Mock_Player");
+        mockPlayer.addToss(new Toss());
+        mockPlayer.addToss(new Toss());
 
-        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
-        Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
+        Mockito.when(this.service.findById(0)).thenReturn(Optional.of(mockPlayer));
 
-        ResponseEntity<Player> bestPlayerAsk = controller.getBestPlayer();
-        Player bestPlayer = percentageA > percentageB ? playerResponse.getBody() : playerResponse2.getBody();
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/players/0/games"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.tosses").isEmpty());
+    }
+
+    @Test
+    void testGetAllPlayersPercentatge() throws Exception {
+        this.playersAndTosses();
+
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/players/"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.['Player 1']").value(0.0))
+                .andExpect(MockMvcResultMatchers.jsonPath("@.['Player 2']").value(100.0));
+
+    }
+
+    @Test
+    void testGetTossList() throws Exception {
+        Player a = new Player("Player 1");
+        a.addToss(new Toss((byte) 1, (byte) 1));
+        a.addToss(new Toss((byte) 2, (byte) 2));
+
+        Mockito.when(this.service.findById(0)).thenReturn(Optional.of(a));
+
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/players/0/games"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.[0].resultDiceA").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("@.[0].resultDiceB").value(1));
+
+    }
+
+    @Test
+    void testGetBestPlayer() throws Exception {
+        Mockito.when(this.service.findBestPlayer()).thenReturn(Optional.of(new Player("Player end")));
+
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/players/ranking/winner"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.name").value("Player end"));
+
+    }
+
+    @Test
+    void testGetRanking() throws Exception {
+        this.playersAndTosses();
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/players/ranking"))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("@.[0].name").value("Player 2"));
         
-        assertTrue(bestPlayerAsk.hasBody());
-        assertEquals(bestPlayer, bestPlayerAsk.getBody());
-
     }
 
     @Test
-    void testGetRanking() {
-        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
+    void testGetWorstPlayer() throws Exception {
+        Mockito.when(this.service.findBestPlayer()).thenReturn(Optional.of(new Player("Player end")));
 
-        Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/players/ranking/winner"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("@.name").value("Player end"));
 
-        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
-
-        Double total = (percentageA + percentageB) / 2;
-        ResponseEntity<Double> answer = controller.getRanking();
-
-        assertTrue(answer.hasBody());
-        assertEquals(total, answer.getBody());
     }
 
-    @Test
-    void testGetTossList() {
-        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_2");
-        Toss tossA = controller.throwDice(playerResponse.getBody().getId()).getBody();
-        Toss tossB = controller.throwDice(playerResponse.getBody().getId()).getBody();
-    
-        ResponseEntity<List<Toss>> tosses = controller.getTossList(playerResponse.getBody().getId());
-        assertTrue(tosses.hasBody());
-        assertEquals(2, tosses.getBody().size());
-        assertTrue(tosses.getBody().contains(tossA));
-        assertTrue(tosses.getBody().contains(tossB));
-    }
+    private void playersAndTosses() {
+        Player a = new Player("Player 1");
+        a.addToss(new Toss((byte) 1, (byte) 1));
+        a.addToss(new Toss((byte) 2, (byte) 2));
+        Player b = new Player("Player 2");
+        b.addToss(new Toss((byte) 6, (byte) 1));
+        b.addToss(new Toss((byte) 6, (byte) 1));
 
-    @Test
-    void testGetWorstPlayer() {
-        ResponseEntity<Player> playerResponse = controller.createPlayer("Player_Test_1");
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
-        controller.throwDice(playerResponse.getBody().getId()).getBody();
+        List<Player> players = new ArrayList<>(List.of(a, b));
 
-
-        Double percentageA = playerResponse.getBody().getPercentage(game.getWinningSum());
-
-        ResponseEntity<Player> playerResponse2 = controller.createPlayer("Player_Test_2");
-        Double percentageB = playerResponse2.getBody().getPercentage(game.getWinningSum());
-
-        ResponseEntity<Player> bestPlayerAsk = controller.getBestPlayer();
-        Player bestPlayer = percentageA < percentageB ? playerResponse.getBody() : playerResponse2.getBody();
-        
-        assertTrue(bestPlayerAsk.hasBody());
-        assertEquals(bestPlayer, bestPlayerAsk.getBody());
-    }
-
-    @Test
-    void testModifyPlayerName() {
-        String oldName = "Player_test";
-        String newName = "New_Name_Test";
-
-        controller.createPlayer(oldName);
-        ResponseEntity<Player> modifiedPlayer = controller.modifyPlayerName(oldName, newName);
-
-        assertTrue(modifiedPlayer.hasBody());
-        assertEquals(newName, modifiedPlayer.getBody().getName());
+        Mockito.when(this.service.findAll()).thenReturn(players);
+        Mockito.when(this.game.getWinningSum()).thenReturn(7);
     }
 
 }

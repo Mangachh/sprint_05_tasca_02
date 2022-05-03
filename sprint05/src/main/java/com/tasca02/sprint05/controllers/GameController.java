@@ -1,11 +1,11 @@
 package com.tasca02.sprint05.controllers;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 
 import com.tasca02.sprint05.Exceptions.NameExistsException;
 import com.tasca02.sprint05.models.Game;
@@ -16,10 +16,6 @@ import com.tasca02.sprint05.services.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "*")
 public class GameController {
 
     /*
@@ -51,7 +46,7 @@ public class GameController {
     
     
 
-    /** POST: /players : crea un jugador (test 1) */
+    /** POST: /players : crea un jugador (testeado) */
     @PostMapping("/players")
     public ResponseEntity<Player> createPlayer(@RequestParam(name = "name", required = false) String name) {
         if (name == null) {
@@ -68,7 +63,7 @@ public class GameController {
         return ResponseEntity.ok(newPlayer);
     }
 
-    /* PUT /players : modifica el nom del jugador (test 1) */
+    /* PUT /players : modifica el nom del jugador (testeado) */
     @PutMapping("players/{name}")
     public ResponseEntity<Player> modifyPlayerName(@PathVariable(value = "name") final String name,
             @RequestParam(name = "newName", required = false) final String newName) {
@@ -100,7 +95,7 @@ public class GameController {
      * POST /players/{id}/games/ : un jugador específic realitza una tirada dels
      * daus. (test 1)
      */
-    @PostMapping("/players{id}/games")
+    @PostMapping("/players/{id}/games")
     public ResponseEntity<Toss> throwDice(@PathVariable(name = "id") final Long id) {
         if (id == null) {
             this.noIdSupplied();
@@ -119,7 +114,7 @@ public class GameController {
         return ResponseEntity.ok(toss);
     }
 
-    /* DELETE /players/{id}/games: elimina les tirades del jugador (test 1) */
+    /* DELETE /players/{id}/games: elimina les tirades del jugador (testeado) */
     @DeleteMapping("/players/{id}/games")
     public ResponseEntity<Player> deleteTosses(@PathVariable(name = "id") final Long id) {
         if (id == null) {
@@ -179,16 +174,21 @@ public class GameController {
      * . És a dir, el percentatge mig d’èxits.
      */
     @GetMapping("/players/ranking")
-    public ResponseEntity<Double> getRanking() {
+    public ResponseEntity<List<Player>> getRanking() {
+
         List<Player> players = playRepo.findAll();
         if (players == null || players.size() == 0) {
             this.noPlayersFound();
         }
 
-        Double percSum = players.stream().map(p -> p.getPercentage(this.game.getWinningSum()))
+        /*Double percSum = players.stream().map(p -> p.getPercentage(this.game.getWinningSum()))
                 .collect(Collectors.summingDouble(Double::doubleValue));
+        
+        return ResponseEntity.ok(percSum / players.size());*/
+        Comparator<Player> comparition = Comparator.comparing(p-> p.getPercentage(this.game.getWinningSum())); 
+        players = players.stream().sorted(comparition.reversed()).toList();
 
-        return ResponseEntity.ok(percSum / players.size());
+        return ResponseEntity.ok(players);
     }
 
     /*
