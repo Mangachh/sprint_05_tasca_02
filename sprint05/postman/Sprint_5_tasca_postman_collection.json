@@ -1,0 +1,254 @@
+{
+	"info": {
+		"_postman_id": "698be443-25e5-4e20-98da-418ec7d205d7",
+		"name": "Sprint 5 tasca 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Add Player",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/players?name=postman_test_XXX",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"players"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "postman_test_XXX"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Player Name",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/players/postman_test?newName=postman_update",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"players",
+						"postman_test"
+					],
+					"query": [
+						{
+							"key": "newName",
+							"value": "postman_update"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Throw Dice",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/players/1/games",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"players",
+						"1",
+						"games"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Tosses",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/players/0/games",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"players",
+						"0",
+						"games"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "All Players Percentatge",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/players/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"players",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Toss List",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/players/1/games",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"players",
+						"1",
+						"games"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Best Player",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/players/ranking/winner",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"players",
+						"ranking",
+						"winner"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Worst Player",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get Token",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "content-type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "YFDrrqR30ClZBkDCvCGkTw0feVyRcEEP",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "cojEIeJFuTa9t8hqzMXes1XNLpCBS2H_klAPH6hV79cIU1p7tb_er9QdfXUG79jN",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "https://api.tasca_02",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://it-cobos-sprint.eu.auth0.com/oauth/token",
+					"protocol": "https",
+					"host": [
+						"it-cobos-sprint",
+						"eu",
+						"auth0",
+						"com"
+					],
+					"path": [
+						"oauth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkFaVjQzQ1JvYWgzejRnd3FEUkQxRSJ9.eyJpc3MiOiJodHRwczovL2l0LWNvYm9zLXNwcmludC5ldS5hdXRoMC5jb20vIiwic3ViIjoiWUZEcnJxUjMwQ2xaQmtEQ3ZDR2tUdzBmZVZ5UmNFRVBAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vYXBpLnRhc2NhXzAyIiwiaWF0IjoxNjUxNTAxNTQ5LCJleHAiOjE2NTE1ODc5NDksImF6cCI6IllGRHJycVIzMENsWkJrREN2Q0drVHcwZmVWeVJjRUVQIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.nJKYA07tq1Nt7DLjtVF2XuzjeLO7VGQ8ATPHx_e1t0O0EfiZXwoAcI3FW26kZZWnFvfNQYxN-jJGTNA32dVVEE_5yT6R9_oNABiqUEhl3sCsf-jQkfSG58AfOfmg9F6KfS80OGZNpA8P1dCCfrxQ4fLA_NCG9NTyjgTDWJgm6wNbhZn86b86kcCCgqlvtfKCQLs2oCoQqCpFbjAO79pQNRhhK8ucIc_jxiL72wO9winNGbPRZL3jd9mu__BbqivahuC8ZUfckQrUZIPM6qUsBIeSZGa9EPeXu7ZEJ-3_bfGJtZKYl_pNlRGtJRCq1Ip5_URT4dPYL6xnVKjwu29tew",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
